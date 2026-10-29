@@ -52,6 +52,9 @@ pub enum OperatingSystemCommand {
     ResetColors(Vec<u8>),
     RxvtExtension(Vec<String>),
     ConEmuProgress(Progress),
+    /// Begin (true) or end (false) a region of text that is
+    /// excluded from text copied from a selection
+    SetNoCopy(bool),
 
     Unspecified(Vec<Vec<u8>>),
 }
@@ -364,6 +367,11 @@ impl OperatingSystemCommand {
             FinalTermSemanticPrompt => self::FinalTermSemanticPrompt::parse(osc)
                 .map(OperatingSystemCommand::FinalTermSemanticPrompt),
             ChangeColorNumber => Self::parse_change_color_number(osc),
+            SetNoCopy => match osc.get(1).copied() {
+                Some(b"1") => Ok(OperatingSystemCommand::SetNoCopy(true)),
+                Some(b"0") => Ok(OperatingSystemCommand::SetNoCopy(false)),
+                _ => bail!("invalid SetNoCopy {:?}", osc),
+            },
             ResetColors => Self::parse_reset_colors(osc),
 
             ResetSpecialColor
@@ -499,6 +507,7 @@ osc_entries!(
     RxvtProprietary = "777",
     FinalTermSemanticPrompt = "133",
     ITermProprietary = "1337",
+    SetNoCopy = "7770",
     /// Here the "Sun" suffix comes from the table in
     /// <https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Miscellaneous>
     /// that lays out various window related escape sequences.
@@ -612,6 +621,7 @@ impl Display for OperatingSystemCommand {
             ConEmuProgress(Progress::SetError(pct)) => write!(f, "9;4;2;{pct}")?,
             ConEmuProgress(Progress::SetIndeterminate) => write!(f, "9;4;3")?,
             ConEmuProgress(Progress::Paused) => write!(f, "9;4;4")?,
+            SetNoCopy(enable) => write!(f, "7770;{}", if *enable { 1 } else { 0 })?,
         };
         // Use the longer form ST as neovim doesn't like the BEL version
         write!(f, "\x1b\\")?;
@@ -1742,6 +1752,22 @@ mod test {
         assert_eq!(
             parse(&["9", "4", "4"], "\x1b]9;4;4\x1b\\"),
             OperatingSystemCommand::ConEmuProgress(Progress::Paused)
+        );
+    }
+
+    #[test]
+    fn no_copy() {
+        assert_eq!(
+            parse(&["7770", "1"], "\x1b]7770;1\x1b\\"),
+            OperatingSystemCommand::SetNoCopy(true)
+        );
+        assert_eq!(
+            parse(&["7770", "0"], "\x1b]7770;0\x1b\\"),
+            OperatingSystemCommand::SetNoCopy(false)
+        );
+        assert_eq!(
+            parse(&["7770", "2"], "\x1b]7770;2\x1b\\"),
+            OperatingSystemCommand::Unspecified(vec![b"7770".to_vec(), b"2".to_vec()])
         );
     }
 

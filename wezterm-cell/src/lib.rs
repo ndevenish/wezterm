@@ -213,6 +213,8 @@ impl CellAttributes {
     bitfield!(overline, set_overline, 12);
     bitfield!(semantic_type, set_semantic_type, SemanticType, 0b11, 13);
     bitfield!(vertical_align, set_vertical_align, VerticalAlign, 0b11, 15);
+    /// When set, the cell is excluded from text copied from a selection
+    bitfield!(no_copy, set_no_copy, 17);
 
     pub const fn blank() -> Self {
         Self {
@@ -462,6 +464,7 @@ impl CellAttributes {
         res.set_underline(Underline::None);
         res.set_overline(false);
         res.set_strikethrough(false);
+        res.set_no_copy(false);
         res
     }
 
