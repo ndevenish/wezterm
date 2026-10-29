@@ -401,6 +401,7 @@ The table below is keyed by the OSC code.
 |133|FinalTerm semantic escapes| Informs the terminal about Input, Output and Prompt regions on the display | [See Shell Integration](shell-integration.md) |
 |777|Call rxvt extension| Only the notify extension is supported; it shows a "toast" notification | `printf "\e]777;notify;%s;%s\e\\" "title" "body"` |
 |1337 |iTerm2 File Upload Protocol | Allows displaying images inline | [See iTerm Image Protocol](imgcat.md) |
+|7770 |Exclude text from copy | `7770;1` starts and `7770;0` ends a region whose text is displayed normally but omitted when copying a selection. Not reset by `SGR 0`. | `printf '\e]7770;1\e\\$ \e]7770;0\e\\ls\n'` |
 |L  |Set Icon Name (Sun) | Same as OSC 1 | `\x1b]Ltab-title\x1b\\` |
 |l  |Set Window Title (Sun) | Same as OSC 2 | `\x1b]lwindow-title\x1b\\` |
 

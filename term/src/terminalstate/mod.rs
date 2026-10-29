@@ -2775,9 +2775,11 @@ impl TerminalState {
             Sgr::Reset => {
                 let link = self.pen.hyperlink().map(Arc::clone);
                 let semantic_type = self.pen.semantic_type();
+                let no_copy = self.pen.no_copy();
                 self.pen = CellAttributes::default();
                 self.pen.set_hyperlink(link);
                 self.pen.set_semantic_type(semantic_type);
+                self.pen.set_no_copy(no_copy);
             }
             Sgr::Intensity(intensity) => {
                 self.pen.set_intensity(intensity);

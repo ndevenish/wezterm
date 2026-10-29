@@ -773,6 +773,9 @@ impl<'a> Performer<'a> {
             OperatingSystemCommand::SetHyperlink(link) => {
                 self.set_hyperlink(link);
             }
+            OperatingSystemCommand::SetNoCopy(enable) => {
+                self.pen.set_no_copy(enable);
+            }
             OperatingSystemCommand::Unspecified(unspec) => {
                 if self.config.log_unknown_escape_sequences() {
                     let mut output = String::new();

@@ -722,6 +722,25 @@ impl Line {
         s
     }
 
+    /// Returns a substring from the line, omitting cells that are
+    /// marked as no_copy.  This is used to produce text for the clipboard.
+    pub fn columns_as_copy_str(&self, range: Range<usize>) -> String {
+        let mut s = String::new();
+        for c in self.visible_cells() {
+            if c.cell_index() < range.start {
+                continue;
+            }
+            if c.cell_index() >= range.end {
+                break;
+            }
+            if c.attrs().no_copy() {
+                continue;
+            }
+            s.push_str(c.str());
+        }
+        s
+    }
+
     pub fn columns_as_line(&self, range: Range<usize>) -> Self {
         let mut cells = vec![];
         for c in self.visible_cells() {

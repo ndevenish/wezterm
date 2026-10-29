@@ -1295,6 +1295,26 @@ fn test_region_scrollback_limit() {
 }
 
 #[test]
+fn test_no_copy() {
+    let mut term = TestTerm::new(3, 10, 0);
+    term.print("$ \x1b]7770;1\x1b\\#> ");
+    // Resetting the pen should not end the no-copy region
+    term.print("\x1b[mx\x1b]7770;0\x1b\\ls\r\n");
+    // Erasing with the pen in no-copy mode should not mark the blanks.
+    // Use a background color so that the erase materializes cells.
+    term.print("\x1b[41m\x1b]7770;1\x1b\\");
+    term.erase_in_line(EraseInLine::EraseToEndOfLine);
+    term.print("z\x1b]7770;0\x1b\\");
+
+    let lines = term.screen().visible_lines();
+    assert_eq!(lines[0].as_str().trim_end(), "$ #> xls");
+    assert_eq!(lines[0].columns_as_copy_str(0..10).trim_end(), "$ ls");
+    assert_eq!(lines[1].columns_as_copy_str(0..10).trim_end(), "");
+    assert!(lines[1].get_cell(0).unwrap().attrs().no_copy());
+    assert!(!lines[1].get_cell(1).unwrap().attrs().no_copy());
+}
+
+#[test]
 fn test_hyperlinks() {
     let mut term = TestTerm::new(3, 5, 0);
     let link = Arc::new(Hyperlink::new("http://example.com"));
